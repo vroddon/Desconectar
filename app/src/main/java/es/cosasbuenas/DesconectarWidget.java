@@ -25,13 +25,6 @@ public class DesconectarWidget extends AppWidgetProvider {
             views.setTextViewText(R.id.text_message, "Message: Hola 👋");
             setMotto(context, manager, widgetId, views);
 
-
-            long millis = ScreenTimeCalculator.getScreenTimeToday(context);
-            long minutes = millis / 1000 / 60;
-            String display = "Pantalla: " + minutes + " min";
-            views.setTextViewText(R.id.text_screen_on, display);
-
-
             // Inicio del tap
             Intent intent = new Intent(context, MainActivity.class);
             PendingIntent pendingIntent = PendingIntent.getActivity(
@@ -40,6 +33,7 @@ public class DesconectarWidget extends AppWidgetProvider {
             // Fin del tap
 
             manager.updateAppWidget(widgetId, views);
+
 
         }
     }
@@ -60,14 +54,38 @@ public class DesconectarWidget extends AppWidgetProvider {
                 }
                 in.close();
                 message = response.toString();
-
             } catch (Exception e) {
                 message = "Error al conectar";
             }
+            String message2="00";
+            try {
+                URL url = new URL("https://cosasbuenas.es/api/computertoday");
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = in.readLine()) != null) {
+                    response.append(line);
+                }
+                in.close();
+                message2 = response.toString();
+            } catch (Exception e) {
+                message2 = "00";
+            }
+
+            long millis = ScreenTimeCalculator.getScreenTimeToday(context);
+            long minutes = millis / 1000 / 60;
+            String display = "Móvil: " + minutes + " min. PC: " + message2 +" min.";
+            views.setTextViewText(R.id.text_screen_on, display);
+
+            Preservation.saveScreenTimeToFile(context, (int)minutes);
+
 
             String finalMessage = message;
             views.setTextViewText(R.id.text_message, "Motto: " + finalMessage);
             manager.updateAppWidget(widgetId, views);
         });
     }
+
 }
